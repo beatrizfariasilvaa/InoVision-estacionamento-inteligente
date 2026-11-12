@@ -1,2 +1,6 @@
 visao/dados
 venv/
+visao/__pycache__/
+visao/debug
+visao/FE-FONT.TTF
+
