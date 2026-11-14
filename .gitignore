@@ -4,3 +4,10 @@ visao/__pycache__/
 visao/debug
 visao/FE-FONT.TTF
 
+
+# API / Python / Banco local
+__pycache__/
+*.py[cod]
+*.db
+*.sqlite
+*.sqlite3
