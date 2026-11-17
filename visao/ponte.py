@@ -15,11 +15,12 @@ from serial_arduino import abrir_cancela, conectar, ler_vagas
 
 URL_API = "http://localhost:8000"
 CONFIANCA_MINIMA = 0.6
-ESPERA = 10
+TEMPO_PARA_SUMIR = 15
 
 camera = abrir_camera()
 arduino = conectar()
-ultima_leitura = 0.0
+ultima_placa = None
+ultima_vez_vista = 0
 print("Rodando. Q na janela da webcam para sair.")
 
 while True:
@@ -27,27 +28,30 @@ while True:
     if frame is None:
         break
     cv2.imshow("webcam", frame)
-    if cv2.waitKey(1) & 0xFF == ord("q"):
+    if cv2.waitKey(1) == ord("q"):
         break
 
     try:
         estado = ler_vagas(arduino)
         if estado is not None:
-            requests.put(f"{URL_API}/vagas", json={"estado": estado})
+            requests.put(URL_API + "/vagas", json={"estado": estado})
             print("Vagas:", estado)
 
-        if time.time() - ultima_leitura < ESPERA:
-            continue
         placa, confianca = reconhecer_placa(frame)
-        if placa is None or confianca < CONFIANCA_MINIMA:
-            continue
 
-        ultima_leitura = time.time()
-        resposta = requests.post(f"{URL_API}/leituras", json={"placa": placa}).json()
-        print(f"Placa {resposta['placa']}: {resposta['acao']} ({resposta['tipo']}) - {resposta['motivo']}")
+        if placa is not None and confianca >= CONFIANCA_MINIMA:
+            agora = time.time()
+            carro_ainda_na_frente = placa == ultima_placa and agora - ultima_vez_vista < TEMPO_PARA_SUMIR
+            ultima_vez_vista = agora
 
-        if resposta["acao"] == "abrir":
-            abrir_cancela(arduino)
+            if not carro_ainda_na_frente:
+                ultima_placa = placa
+
+                resposta = requests.post(URL_API + "/leituras", json={"placa": placa}).json()
+                print(f"Placa {resposta['placa']}: {resposta['acao']} ({resposta['tipo']}) - {resposta['motivo']}")
+
+                if resposta["acao"] == "abrir":
+                    abrir_cancela(arduino)
 
     except requests.RequestException:
         print("Sem conexão com a API.")

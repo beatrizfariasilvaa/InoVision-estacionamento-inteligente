@@ -1,37 +1,21 @@
-import platform
-
+"""Abre a webcam e tira fotos (frames) dela."""
 import cv2
 
-
-INDICE_CAMERA = None
-
-BACKEND = cv2.CAP_DSHOW if platform.system() == "Windows" else cv2.CAP_ANY
-
-
-def listar_cameras(maximo=5):
-    disponiveis = []
-    for i in range(maximo):
-        cam = cv2.VideoCapture(i, BACKEND)
-        if cam.isOpened() and cam.read()[0]:
-            disponiveis.append(i)
-        cam.release()
-    return disponiveis
+#0 -> webcam do notebook
+#1 -> webcam USB.
+CAMERA = 1
 
 
-def abrir_camera(indice=INDICE_CAMERA):
-    if indice is None:
-        disponiveis = listar_cameras()
-        print("Câmeras encontradas:", disponiveis)
-        if not disponiveis:
-            raise RuntimeError("Nenhuma câmera encontrada. A webcam está plugada?")
-        indice = disponiveis[-1]  
-    camera = cv2.VideoCapture(indice, BACKEND)
+def abrir_camera():
+    camera = cv2.VideoCapture(CAMERA, cv2.CAP_DSHOW)
     if not camera.isOpened():
-        raise RuntimeError(f"Não consegui abrir a câmera {indice}")
-    print("Usando a câmera", indice)
+        print("Não foi possivel abrir a câmera", CAMERA)
     return camera
 
 
 def capturar_frame(camera):
-    ok, frame = camera.read()
-    return frame if ok else None
+    """Tira uma foto da webcam. Devolve a foto, ou None se deu erro."""
+    deu_certo, foto = camera.read()
+    if deu_certo:
+        return foto
+    return None

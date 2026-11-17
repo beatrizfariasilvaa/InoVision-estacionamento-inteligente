@@ -94,7 +94,7 @@ cd visao
 python ponte.py
 ```
 
-O programa encontra sozinho a webcam e a porta do Arduino, e abre uma janela com a imagem da câmera. A partir daí, é só mostrar a placa para a câmera.
+O programa usa a webcam número 1 e o Arduino na porta COM7 (se no seu computador forem outros, troque `CAMERA` em `visao/camera.py` e `PORTA` em `visao/serial_arduino.py`), e abre uma janela com a imagem da câmera. A partir daí, é só mostrar a placa para a câmera.
 
 No terminal aparecem mensagens como:
 

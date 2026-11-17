@@ -1,10 +1,3 @@
-// Estacionamento inteligente - cancela.ino
-// 3 sensores infravermelhos (tipo FC-51), um por vaga.
-// O sensor manda LOW quando tem um carro na frente.
-// Mensagens pela serial:
-//   PC -> Arduino: ABRIR       (levanta a cancela)
-//   Arduino -> PC: VAGAS:010   (1 = ocupada), enviado sempre que uma vaga muda
-
 #include <Servo.h>
 
 const int PINO_SERVO = 9;

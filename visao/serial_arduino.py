@@ -1,39 +1,35 @@
 """Conversa com o Arduino pelo cabo USB.
 
-PC -> Arduino: ABRIR
-Arduino -> PC: VAGAS:010
+Mensagens trocadas:
+    PC -> Arduino: ABRIR        (levanta a cancela)
+    Arduino -> PC: VAGAS:010    (1 = vaga ocupada, 0 = livre)
 """
 import time
 
 import serial
-from serial.tools import list_ports
 
-PORTA = None
+PORTA = "COM7"
 VELOCIDADE = 9600
 
 
-def conectar(porta=PORTA):
-    if porta is None:
-        portas = [p.device for p in list_ports.comports()]
-        print("Portas encontradas:", portas)
-        if not portas:
-            raise RuntimeError("Nenhum Arduino encontrado.")
-        porta = portas[0]
-    arduino = serial.Serial(porta, VELOCIDADE, timeout=0.1)
+def conectar():
+    arduino = serial.Serial(PORTA, VELOCIDADE, timeout=0.1)
     time.sleep(2)
-    print("Arduino conectado na porta", porta)
+    print("Arduino conectado na porta", PORTA)
     return arduino
 
 
 def abrir_cancela(arduino):
     arduino.write(b"ABRIR\n")
 
-
 def ler_vagas(arduino):
     """Devolve o estado mais recente das vagas (ex.: "010") ou None se não chegou nada."""
     estado = None
-    while arduino.in_waiting:
-        linha = arduino.readline().decode(errors="ignore").strip()
+
+    while arduino.in_waiting > 0:
+        linha = arduino.readline()
+        linha = linha.decode(errors="ignore").strip()
         if linha.startswith("VAGAS:"):
             estado = linha.replace("VAGAS:", "")
+
     return estado

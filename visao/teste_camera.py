@@ -1,9 +1,9 @@
-"""Teste ao vivo: webcam -> recorte -> MLP -> string.
+"""Testa só a câmera e a IA (sem Arduino e sem API).
 
-ESPAÇO: tenta ler a placa do frame atual (e salva os recortes em debug/)
+ESPAÇO: tenta ler a placa (e salva as imagens na pasta debug/)
 Q: sai
 """
-from pathlib import Path
+import os
 
 import cv2
 
@@ -11,8 +11,7 @@ from camera import abrir_camera, capturar_frame
 from recorte import recortar_placa, separar_caracteres
 from reconhecer import ler_caracteres
 
-PASTA_DEBUG = Path("debug")
-PASTA_DEBUG.mkdir(exist_ok=True)
+os.makedirs("debug", exist_ok=True)
 
 camera = abrir_camera()
 print("ESPAÇO = ler placa | Q = sair")
@@ -22,28 +21,29 @@ while True:
     if frame is None:
         break
     cv2.imshow("webcam", frame)
-    tecla = cv2.waitKey(1) & 0xFF
+    tecla = cv2.waitKey(1)
 
     if tecla == ord("q"):
         break
 
     if tecla == ord(" "):
-        cv2.imwrite(str(PASTA_DEBUG / "frame.png"), frame)
+        cv2.imwrite("debug/frame.png", frame)
+
         placa = recortar_placa(frame)
         if placa is None:
-            print("Placa não encontrada no frame")
+            print("Não achei a placa")
             continue
-        cv2.imwrite(str(PASTA_DEBUG / "placa.png"), placa)
+        cv2.imwrite("debug/placa.png", placa)
 
         caracteres = separar_caracteres(placa)
-        for i, c in enumerate(caracteres):
-            cv2.imwrite(str(PASTA_DEBUG / f"char_{i}.png"), c)
+        for i in range(len(caracteres)):
+            cv2.imwrite(f"debug/char_{i}.png", caracteres[i])
         if len(caracteres) != 7:
-            print(f"Achei {len(caracteres)} caracteres em vez de 7 (veja debug/)")
+            print("Achei", len(caracteres), "caracteres em vez de 7 (veja a pasta debug/)")
             continue
 
         texto, confianca = ler_caracteres(caracteres)
-        print(f"Placa: {texto}  (confiança mínima: {confianca:.0%})")
+        print("Placa:", texto, "- confiança:", round(confianca * 100), "%")
 
 camera.release()
 cv2.destroyAllWindows()
